@@ -3,6 +3,5 @@ dist/
 __pycache__/
 *.pyc
 output/
-*.txt
-*.json
+transcripts/output/
 *.srt
