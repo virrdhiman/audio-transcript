@@ -37,11 +37,12 @@ The executable is written to `dist\AudioTranscript.exe`.
 
 ## Usage
 
-1. Click **Browse files…** and select one or more recordings
-2. Choose an **output folder**
-3. Pick a Whisper model (`base` is a good default)
-4. Click **Generate Word transcripts**
-5. Open the generated `*_transcript.docx` files in Microsoft Word
+1. Choose a Whisper model (default: `base`)
+2. Click **Download model** (needs internet the first time)
+3. Click **Browse files…** and select one or more recordings
+4. Choose an **output folder**
+5. Click **Generate Word transcripts**
+6. Open the generated `*_transcript.docx` files in Microsoft Word
 
 ## Project layout
 
