@@ -57,7 +57,7 @@ _model_key: tuple[str, str] | None = None
 
 
 def get_model(model_size: str = "base", device: str = "cpu") -> WhisperModel:
-    """Load and cache the Whisper model."""
+    """Load and cache the Whisper model (downloads on first use if needed)."""
     global _model, _model_key
     compute_type = "int8" if device == "cpu" else "float16"
     key = (model_size, device)
@@ -65,6 +65,12 @@ def get_model(model_size: str = "base", device: str = "cpu") -> WhisperModel:
         _model = WhisperModel(model_size, device=device, compute_type=compute_type)
         _model_key = key
     return _model
+
+
+def download_model(model_size: str = "base", device: str = "cpu") -> str:
+    """Download (if needed) and load the selected Whisper model. Returns a status message."""
+    get_model(model_size=model_size, device=device)
+    return f"Model '{model_size}' is ready."
 
 
 def transcribe_audio(

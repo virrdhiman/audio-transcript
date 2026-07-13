@@ -14,7 +14,12 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 
-from transcriber import format_duration, format_timestamp, transcribe_audio
+from transcriber import (
+    download_model,
+    format_duration,
+    format_timestamp,
+    transcribe_audio,
+)
 from word_export import export_to_word
 
 AUDIO_EXTENSIONS = (
@@ -90,9 +95,13 @@ class TranscriptApp(tk.Tk):
             state="readonly",
             width=12,
         ).pack(side="left", padx=8)
+        self.download_btn = ttk.Button(
+            opts, text="Download model", command=self.start_download_model
+        )
+        self.download_btn.pack(side="left", padx=(4, 8))
         ttk.Label(
             opts,
-            text="(base = good balance; first run downloads the model)",
+            text="(base = good balance; download before first transcript)",
         ).pack(side="left")
 
         out_row = ttk.Frame(self)
@@ -149,6 +158,54 @@ class TranscriptApp(tk.Tk):
         self.log.see(tk.END)
         self.log.configure(state="disabled")
 
+    def _set_busy(self, busy: bool) -> None:
+        self._busy = busy
+        state = "disabled" if busy else "normal"
+        self.run_btn.configure(state=state)
+        self.download_btn.configure(state=state)
+
+    def start_download_model(self) -> None:
+        if self._busy:
+            return
+        model = self.model_size.get()
+        self._set_busy(True)
+        self.progress.configure(mode="indeterminate")
+        self.progress.start(12)
+        self.status.set(f"Downloading model '{model}'…")
+        self._append_log(f"Downloading Whisper model '{model}' (internet required)…")
+
+        thread = threading.Thread(
+            target=self._download_worker,
+            args=(model,),
+            daemon=True,
+        )
+        thread.start()
+
+    def _download_worker(self, model: str) -> None:
+        try:
+            message = download_model(model_size=model)
+            self.after(0, lambda: self._download_done(success=True, message=message))
+        except Exception as exc:  # noqa: BLE001 - show in UI
+            err = f"Model download failed: {exc}"
+            self.after(0, lambda: self._append_log(err))
+            self.after(0, lambda: self._append_log(traceback.format_exc()))
+            self.after(0, lambda: self._download_done(success=False, message=err))
+
+    def _download_done(self, success: bool, message: str) -> None:
+        self.progress.stop()
+        self.progress.configure(mode="determinate", value=0)
+        self._set_busy(False)
+        self._append_log(message)
+        if success:
+            self.status.set(message)
+            messagebox.showinfo("Model ready", message)
+        else:
+            self.status.set("Model download failed.")
+            messagebox.showerror(
+                "Download failed",
+                f"{message}\n\nCheck your internet connection and try again.",
+            )
+
     def start_transcription(self) -> None:
         if self._busy:
             return
@@ -158,10 +215,9 @@ class TranscriptApp(tk.Tk):
         out_dir = Path(self.output_dir.get().strip() or ".")
         out_dir.mkdir(parents=True, exist_ok=True)
 
-        self._busy = True
-        self.run_btn.configure(state="disabled")
-        self.progress.configure(maximum=len(self.files), value=0)
-        self.status.set("Working… first run may download the speech model.")
+        self._set_busy(True)
+        self.progress.configure(mode="determinate", maximum=len(self.files), value=0)
+        self.status.set("Working…")
         self._append_log("Starting transcription…")
 
         files = list(self.files)
@@ -208,8 +264,7 @@ class TranscriptApp(tk.Tk):
             self.after(0, lambda: self._done(created, errors))
 
     def _done(self, created: list[Path], errors: list[str]) -> None:
-        self._busy = False
-        self.run_btn.configure(state="normal")
+        self._set_busy(False)
         if created and not errors:
             self.status.set(f"Done. Created {len(created)} Word file(s).")
             messagebox.showinfo(
