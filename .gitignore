@@ -5,3 +5,13 @@ __pycache__/
 output/
 transcripts/output/
 *.srt
+
+# added by UPLOAD-ALL-REPOS
+.env
+.env.*
+!.env.example
+node_modules/
+.venv/
+.DS_Store
+Thumbs.db
+.next/
