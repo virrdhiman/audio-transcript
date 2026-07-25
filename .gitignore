@@ -26,3 +26,11 @@ Thumbs.db
 # Generated transcripts
 *_transcript.docx
 output/
+
+# added by UPLOAD-ALL-REPOS
+.env
+.env.*
+!.env.example
+node_modules/
+*.pyc
+.next/
