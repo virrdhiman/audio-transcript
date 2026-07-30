@@ -1,31 +1,27 @@
 @echo off
 setlocal
+title Build EXE - Audio Transcript
 cd /d "%~dp0"
 
-echo Installing / updating dependencies...
-python -m pip install -r requirements.txt
-if errorlevel 1 exit /b 1
+echo.
+echo ========================================
+echo   Building EXE: AudioTranscript
+echo   Project     : Audio Transcript
+echo ========================================
+echo.
+
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0..\..\tools\BuildExe\Build-One.ps1" -RepoFolder "%CD%" -EntryScript "main.py" -ExeName "AudioTranscript" -Console 
+set ERR=%ERRORLEVEL%
 
 echo.
-echo Building AudioTranscript.exe ...
-python -m PyInstaller ^
-  --noconfirm ^
-  --clean ^
-  --onefile ^
-  --windowed ^
-  --name AudioTranscript ^
-  --collect-all faster_whisper ^
-  --collect-all ctranslate2 ^
-  --hidden-import faster_whisper ^
-  --hidden-import ctranslate2 ^
-  --hidden-import docx ^
-  main.py
-
-if errorlevel 1 (
-  echo Build failed.
-  exit /b 1
+if %ERR% NEQ 0 (
+  echo BUILD FAILED
+  pause
+  exit /b %ERR%
 )
 
 echo.
-echo Done: dist\AudioTranscript.exe
+echo EXE is in: "%CD%\dist\AudioTranscript.exe"
+explorer "%CD%\dist"
+pause
 endlocal
