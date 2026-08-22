@@ -1,4 +1,5 @@
 @echo off
+REM PRJs runner | platform: windows | scope: repo-local
 setlocal
 title Build EXE - Audio Transcript
 cd /d "%~dp0"
