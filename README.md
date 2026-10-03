@@ -53,3 +53,8 @@ The executable is written to `dist\AudioTranscript.exe`.
 | `word_export.py` | Word `.docx` export |
 | `build_exe.bat` | PyInstaller build |
 | `requirements.txt` | Python dependencies |
+
+## transcript-maker/
+
+The older standalone `Transcript_Maker` tool (merged 2026-10-03, history preserved). `transcriber.py` + `main.py` at the root are the current app.
+
